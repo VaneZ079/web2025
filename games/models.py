@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 
 class Company(models.Model):
     name = models.CharField("Название компании", max_length=100, unique=True)
-    country = models.CharField("Страна", max_length=100)
-    founded_year = models.IntegerField("Год основания")
+    country = models.CharField("Страна", max_length=100, blank=True, null=True)
+    founded_year = models.IntegerField("Год основания", null=True, blank=True)
 
     class Meta:
         verbose_name = "Компания"
@@ -15,7 +15,7 @@ class Company(models.Model):
 
 class Genre(models.Model):
     name = models.CharField("Название жанра", max_length=50, unique=True)
-    description = models.TextField("Описание")
+    description = models.TextField("Описание", blank=True)
 
     class Meta:
         verbose_name = "Жанр"
@@ -26,7 +26,7 @@ class Genre(models.Model):
 
 class Platform(models.Model):
     name = models.CharField("Название платформы", max_length=50, unique=True)
-    release_year = models.IntegerField("Год выхода")
+    release_year = models.IntegerField("Год выхода", null=True, blank=True)
 
     class Meta:
         verbose_name = "Платформа"
@@ -38,7 +38,7 @@ class Platform(models.Model):
 class Game(models.Model):
     title = models.CharField("Название игры", max_length=200)
     description = models.TextField("Описание игры")
-    release_date = models.DateField("Дата выхода")
+    release_date = models.DateField("Дата выхода", null=True, blank=True)
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
