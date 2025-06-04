@@ -143,6 +143,33 @@
         <h1 class="text-center">Добро пожаловать на GameShow!</h1>
     </div>
 
+    <div class="top-games-widget">
+        <div class="top-games-header">
+            <h2>Топ-5 игр этого месяца</h2>
+            <small>По оценкам пользователей</small>
+        </div>
+        <div class="top-games-list">
+            {% for game in top_games %}
+            <a href="{% url 'game_detail' game.id %}" class="top-game-card">
+                <div class="top-game-rank">{{ forloop.counter }}</div>
+                {% if game.cover_image %}
+                    <img src="{{ game.cover_image.url }}" alt="{{ game.title }}" />
+                {% endif %}
+                <div class="top-game-info">
+                    <h5>{{ game.title }}</h5>
+                    <div class="game-rating">
+                        ★ {{ game.avg_rating|floatformat:1 }} ({{ game.review_count }} отзывов)
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">Недостаточно данных для формирования топа</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
     <div class="search-form">
         <form method="get" class="mb-3">
             <div class="row g-3">
