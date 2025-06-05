@@ -1,0 +1,16 @@
+{% extends 'games/base.html' %}
+
+{% block title %}Моя коллекция{% endblock %}
+
+{% block content %}
+<h1>Моя коллекция</h1>
+{% if games %}
+  <ul>
+    {% for game in games %}
+      <li>{{ game.title }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Вы ещё не добавили игр в коллекцию.</p>
+{% endif %}
+{% endblock %}
