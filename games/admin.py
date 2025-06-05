@@ -28,7 +28,8 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'game', 'rating', 'created_at')
     list_filter = ('rating', 'game')
     search_fields = ('user__username', 'game__title')
-    raw_id_fields = ('user', 'game')  # Для оптимизации при большом количестве записей
+    raw_id_fields = ('user', 'game')
+    date_hierarchy = 'created_at'
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
