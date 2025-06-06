@@ -12,8 +12,8 @@
     
     .game-header {
         position: relative;
-        height: 400px;
-        overflow: hidden;
+        {% comment %} height: 400px; {% endcomment %}
+        overflow: visible;
     }
     
     .game-header-bg {
@@ -60,34 +60,97 @@
     }
     
     .review-form {
-        background: rgba(30,30,30,0.7);
-        padding: 20px;
+        background: rgba(30,30,30,0.9);
+        padding: 30px;
         border-radius: 8px;
+        position: relative;
+        z-index: 10;
+        max-width: 800px; /* увеличиваем максимальную ширину */
+        margin: 0 auto 40px auto; /* центрируем и добавляем нижний отступ */
+        font-size: 1.1rem; /* чуть увеличиваем шрифт */
     }
-    
-    .form-control, .form-select {
-        background-color: #333;
-        border: 1px solid #444;
-        color: white;
+
+    .review-form .form-control,
+    .review-form .form-select {
+        font-size: 1.1rem;
+        padding: 10px 12px;
     }
-    
-    .form-control:focus {
-        background-color: #444;
-        color: white;
-        border-color: #555;
+
+    .review-form label {
+        font-weight: 600;
     }
+
+    .review-form button {
+        padding: 12px 20px;
+        font-size: 1.1rem;
+    }
+
+        .game-content > .row {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .col-md-9 {
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+    }
+
+    .review-form mt-4 {
+        height: 100%
+    }
+
 </style>
 
 <div class="game-detail-container">
     <div class="game-header">
         <div class="game-header-bg"></div>
         <div class="game-content">
+            {% if edit_game and user.is_authenticated %}
+                <div class="review-form mt-4">
+                    <h4>Редактировать игру</h4>
+                    <form method="post" action=".?edit_game=true">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label">Название</label>
+                            {{ form.title }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Описание</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_release_date" class="form-label">Дата выхода</label>
+                            {{ form.release_date }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_company" class="form-label">Компания</label>
+                            {{ form.company }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_genres" class="form-label">Жанры</label>
+                            {{ form.genres }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_platforms" class="form-label">Платформы</label>
+                            {{ form.platforms }}
+                        </div>
+                        <button type="submit" class="btn btn-success" style="display:block; background:red; color:white; z-index:9999;">Сохранить изменения</button>
+                    </form>
+                </div>
+            {% endif %}
             <div class="row">
                 <div class="col-md-3">
                     <img src="{{ game.cover_image.url }}" alt="{{ game.title }}" class="game-cover img-fluid" />
                 </div>
                 <div class="col-md-9">
-                    <h1>{{ game.title }}</h1>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h1 class="mb-0">{{ game.title }}</h1>
+                        {% if user.is_authenticated %}
+                            <a href="?edit_game=true" class="btn btn-warning">Редактировать игру</a>
+                        {% endif %}
+                    </div>
                     {% if game.average_rating %}
                         <div class="mb-3">
                             <span class="rating-stars">
@@ -119,99 +182,100 @@
             </div>
         </div>
     </div>
-    
-    <div class="game-content">
-        <div class="row">
-            <div class="col-lg-8">
-                <h3>Описание</h3>
-                <p>{{ game.description|linebreaks }}</p>
-                
-                <h3 class="mt-5">Отзывы</h3>
-                {% for review in reviews %}
-                    <div class="review-card">
-                        <div class="d-flex justify-content-between">
-                            <h5>{{ review.user.username }}</h5>
-                            <div>
-                                <div class="rating-stars d-inline-block me-3">
-                                    {% for i in "12345" %}
-                                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
-                                    {% endfor %}
-                                </div>
-                                {% if user == review.user %}
-                                    <form method="post" action="{% url 'delete_review' review.id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
-                                    </form>
-                                    <a href="?edit={{ review.id }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
+    {% if not edit_game %}
+        <div class="game-content">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h3>Описание</h3>
+                    <p>{{ game.description|linebreaks }}</p>
+                    
+                    <h3 class="mt-5">Отзывы</h3>
+                    {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="d-flex justify-content-between">
+                                <h5>{{ review.user.username }}</h5>
+                                <div>
+                                    <div class="rating-stars d-inline-block me-3">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% if user == review.user %}
+                                        <form method="post" action="{% url 'delete_review' review.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                        </form>
+                                        <a href="?edit={{ review.id }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
 
-                                {% endif %}
+                                    {% endif %}
+                                </div>
                             </div>
+                            <p class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</p>
+                            {% if edit_review_id == review.id %}
+                                <div class="review-form mt-3">
+                                    <h5>Редактировать отзыв</h5>
+                                    <form method="post" action="{% url 'edit_review' review.id %}">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="edit-rating-{{ review.id }}" class="form-label">Оценка</label>
+                                            <select id="edit-rating-{{ review.id }}" name="rating" class="form-select" required>
+                                                {% for i in "54321" %}
+                                                    <option value="{{ i }}" {% if review.rating|stringformat:"s" == i %}selected{% endif %}>{{ i }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="edit-comment-{{ review.id }}" class="form-label">Комментарий</label>
+                                            <textarea id="edit-comment-{{ review.id }}" name="comment" class="form-control" rows="4" required>{{ review.comment }}</textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">Сохранить изменения</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <p>{{ review.comment|linebreaks }}</p>
+                            {% endif %}
                         </div>
-                        <p class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</p>
-                        {% if edit_review_id == review.id %}
-                            <div class="review-form mt-3">
-                                <h5>Редактировать отзыв</h5>
-                                <form method="post" action="{% url 'edit_review' review.id %}">
+                    {% empty %}
+                        <div class="alert alert-info">Пока нет отзывов.</div>
+                    {% endfor %}
+                    
+                    {% if user.is_authenticated %}
+                        {% if not user_review %}
+                            <div class="review-form mt-5">
+                                <h4>Оставить отзыв</h4>
+                                <form method="post" action="{% url 'add_review' game.id %}">
                                     {% csrf_token %}
                                     <div class="mb-3">
-                                        <label for="edit-rating-{{ review.id }}" class="form-label">Оценка</label>
-                                        <select id="edit-rating-{{ review.id }}" name="rating" class="form-select" required>
-                                            {% for i in "54321" %}
-                                                <option value="{{ i }}" {% if review.rating|stringformat:"s" == i %}selected{% endif %}>{{ i }}</option>
-                                            {% endfor %}
+                                        <label for="id_rating" class="form-label">Оценка</label>
+                                        <select id="id_rating" name="rating" class="form-select" required>
+                                            <option value="">Выберите оценку</option>
+                                            <option value="5">5</option>
+                                            <option value="4">4</option>
+                                            <option value="3">3</option>
+                                            <option value="2">2</option>
+                                            <option value="1">1</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="edit-comment-{{ review.id }}" class="form-label">Комментарий</label>
-                                        <textarea id="edit-comment-{{ review.id }}" name="comment" class="form-control" rows="4" required>{{ review.comment }}</textarea>
+                                        <label for="id_comment" class="form-label">Комментарий</label>
+                                        <textarea id="id_comment" name="comment" class="form-control" rows="4" required></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-success">Сохранить изменения</button>
+                                    <button type="submit" class="btn btn-primary">Отправить отзыв</button>
                                 </form>
                             </div>
                         {% else %}
-                            <p>{{ review.comment|linebreaks }}</p>
+                            <div class="alert alert-info mt-5">
+                                Вы уже оставили отзыв. Вы можете <a href="?edit={{ user_review.id }}">редактировать</a> или удалить его.
+                            </div>
                         {% endif %}
-                    </div>
-                {% empty %}
-                    <div class="alert alert-info">Пока нет отзывов.</div>
-                {% endfor %}
-                
-                {% if user.is_authenticated %}
-                    {% if not user_review %}
-                        <div class="review-form mt-5">
-                            <h4>Оставить отзыв</h4>
-                            <form method="post" action="{% url 'add_review' game.id %}">
-                                {% csrf_token %}
-                                <div class="mb-3">
-                                    <label for="id_rating" class="form-label">Оценка</label>
-                                    <select id="id_rating" name="rating" class="form-select" required>
-                                        <option value="">Выберите оценку</option>
-                                        <option value="5">5</option>
-                                        <option value="4">4</option>
-                                        <option value="3">3</option>
-                                        <option value="2">2</option>
-                                        <option value="1">1</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="id_comment" class="form-label">Комментарий</label>
-                                    <textarea id="id_comment" name="comment" class="form-control" rows="4" required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Отправить отзыв</button>
-                            </form>
-                        </div>
                     {% else %}
-                        <div class="alert alert-info mt-5">
-                            Вы уже оставили отзыв. Вы можете <a href="?edit={{ user_review.id }}">редактировать</a> или удалить его.
+                        <div class="alert alert-warning">
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="alert-link">Войдите</a>, чтобы оставить отзыв.
                         </div>
                     {% endif %}
-                {% else %}
-                    <div class="alert alert-warning">
-                        <a href="{% url 'login' %}?next={{ request.path }}" class="alert-link">Войдите</a>, чтобы оставить отзыв.
-                    </div>
-                {% endif %}
+                </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
