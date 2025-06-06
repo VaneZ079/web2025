@@ -9,6 +9,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from .forms import GameForm
+
 
 
 @login_required
@@ -24,6 +26,18 @@ def edit_review(request, review_id):
         return redirect('game_detail', game_id=review.game.id)
 
     return redirect('game_detail', game_id=review.game.id)
+
+def ed_game(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    
+    if request.method == 'POST':
+        game.title = request.POST.get('title')
+        game.description = request.POST.get('description')
+        # Обновляем другие поля по необходимости
+        game.save()
+        return redirect('game_detail', game_id=game.id)
+    
+    return redirect('game_detail', game_id=game.id)
 
 def home(request):
     games = Game.objects.all()
@@ -155,19 +169,36 @@ def game_detail(request, game_id):
     game = get_object_or_404(Game, id=game_id)
     reviews = Review.objects.filter(game=game).order_by('-created_at')
     edit_review_id = request.GET.get('edit')
+    edit_game = request.GET.get('edit_game') == 'true'
 
     user_review = None
     if request.user.is_authenticated:
         user_review = reviews.filter(user=request.user).first()
+
+    form = None
+    if request.method == 'POST' and edit_game and request.user.is_authenticated:
+        form = GameForm(request.POST, instance=game)
+        if form.is_valid():
+            updated_game = form.save(commit=False)
+            updated_game.save() 
+            form.save_m2m() 
+            return redirect('game_detail', game_id=game.id)
+        else:
+            print(form.errors)
+    elif edit_game and request.user.is_authenticated:
+        form = GameForm(instance=game)
 
     context = {
         'game': game,
         'reviews': reviews,
         'edit_review_id': int(edit_review_id) if edit_review_id and edit_review_id.isdigit() else None,
         'user_review': user_review,
+        'edit_game': edit_game,
+        'form': form,
     }
 
     return render(request, 'games/game_detail.html', context)
+
 
 
 def favorites(request):
@@ -203,3 +234,4 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'games/register.html', {'form': form})
+
